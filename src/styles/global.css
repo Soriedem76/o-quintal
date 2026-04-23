@@ -1,0 +1,111 @@
+/* src/styles/global.css */
+@import './animations.css';
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --red: #D62828;
+  --red-dark: #9B1515;
+  --red-bright: #FF3333;
+  --black: #0D0D0D;
+  --black-soft: #1A1A1A;
+  --white: #F0EDE6;
+  --white-dirty: #E8E0D0;
+  --ink: #111111;
+  --paper: #C8C0B0;
+  --rust: #8B3A2A;
+  --yellow: #F5C842;
+  --spray-green: #4CAF50;
+
+  --font-display: 'Black Ops One', cursive;
+  --font-heading: 'Bebas Neue', cursive;
+  --font-body: 'Space Mono', monospace;
+
+  --grain-opacity: 0.06;
+  --shadow-brutal: 4px 4px 0px var(--black);
+  --shadow-ink: 2px 2px 0px rgba(0,0,0,0.8);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--black);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--white);
+  cursor: crosshair;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Grain overlay global */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+/* Scrollbar grunge */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--red-dark); border-radius: 0; }
+
+/* Selection */
+::selection {
+  background: var(--red);
+  color: var(--white);
+}
+
+/* Drip animation keyframes */
+@keyframes drip {
+  0% { height: 0; opacity: 1; }
+  70% { height: 40px; opacity: 1; }
+  100% { height: 50px; opacity: 0; }
+}
+
+@keyframes drip-slow {
+  0% { transform: translateY(0) scaleY(0); opacity: 0.8; }
+  100% { transform: translateY(60px) scaleY(1); opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
+@keyframes stamp-in {
+  0% { transform: scale(1.4) rotate(-3deg); opacity: 0; }
+  60% { transform: scale(0.95) rotate(1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes spray-fade {
+  0% { opacity: 0; transform: scale(0.6); filter: blur(8px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214,40,40,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(214,40,40,0); }
+}
