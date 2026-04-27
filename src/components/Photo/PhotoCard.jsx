@@ -1,116 +1,121 @@
-// src/components/Photo/PhotoCard.jsx
+// src/components/Photo/PhotoCard.jsx — with swinging animation while dragging
 import { useState } from 'react';
 import MusicPlayer from '../Music/MusicPlayer';
 
-export default function PhotoCard({ item, user }) {
-  const [showPin, setShowPin] = useState(false);
+export default function PhotoCard({ item, user, dragging }) {
+  const [showMusic, setShowMusic] = useState(false);
   const rotation = ((item.id?.charCodeAt(0) || 0) % 10) - 5;
 
   const ts = item.createdAt?.toDate?.() || new Date();
   const dateStr = ts.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  const isOwn = user?.id === item.authorId;
 
   return (
-    <div style={{
-      ...styles.card,
-      transform: `rotate(${rotation}deg)`,
-    }}>
-      {/* Tape strip */}
+    <div
+      style={{
+        ...S.card,
+        '--card-rot': `${rotation}deg`,
+        // While dragging (passed from DraggableItem via CSS class or direct prop),
+        // the parent DraggableItem already applies tilt; here we add sway animation
+        animation: dragging ? `sway 0.35s ease-in-out infinite` : `float-bob 4s ease-in-out infinite`,
+        transform: `rotate(${rotation}deg)`,
+        filter: `drop-shadow(${dragging ? '0 20px 30px rgba(0,0,0,0.85)' : '4px 6px 16px rgba(0,0,0,0.55)'})`,
+      }}
+    >
+      {/* Tape strip top */}
       <div style={{
-        ...styles.tape,
-        background: `${item.authorColor}55`,
-        border: `1px solid ${item.authorColor}88`,
-        transform: `rotate(${rotation * -1.5}deg) translateX(-50%)`,
+        ...S.tape,
+        background: `${item.authorColor}44`,
+        border: `1px solid ${item.authorColor}66`,
       }} />
 
       {/* Photo */}
-      <img src={item.url} alt="" style={styles.img} draggable={false} />
+      <img src={item.url} alt="" style={S.img} draggable={false} />
 
-      {/* Bottom info */}
-      <div style={styles.caption}>
-        <div style={styles.authorRow}>
-          <div style={{ ...styles.dot, background: item.authorColor }} />
-          <span style={styles.author}>{item.author}</span>
-          <span style={styles.date}>{dateStr}</span>
+      {/* Bottom strip */}
+      <div style={S.strip}>
+        <div style={S.authorRow}>
+          <div style={{ ...S.dot, background: item.authorColor }} />
+          <span style={S.authorName}>{item.author}</span>
+          <span style={S.date}>{dateStr}</span>
+          {item.music && (
+            <button style={S.musicBtn} onClick={e => { e.stopPropagation(); setShowMusic(v => !v); }}>
+              🎵
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Music */}
-      {item.music && <MusicPlayer url={item.music} color={item.authorColor} />}
-
-      {/* Drip effect bottom */}
-      <div style={styles.dripsBottom}>
-        {[15, 30, 55, 70, 85].map((p, i) => (
+      {/* Paint drips from bottom */}
+      <div style={S.dripsRow} aria-hidden>
+        {[12, 28, 48, 68, 84].map((left, i) => (
           <div key={i} style={{
-            ...styles.cardDrip,
-            left: `${p}%`,
-            background: item.authorColor,
-            height: `${8 + (i % 3) * 6}px`,
+            ...S.drip,
+            left: `${left}%`,
+            height: `${8 + (i % 3) * 7}px`,
             width: `${2 + (i % 2)}px`,
-            animationDelay: `${i * 0.8}s`,
-            opacity: 0.6,
+            background: item.authorColor,
+            animationDelay: `${i * 0.5}s`,
           }} />
         ))}
       </div>
+
+      {showMusic && item.music && (
+        <div style={S.musicWrap} onClick={e => e.stopPropagation()}>
+          <MusicPlayer url={item.music} color={item.authorColor} />
+        </div>
+      )}
     </div>
   );
 }
 
-const styles = {
+const S = {
   card: {
-    background: 'var(--white-dirty)',
-    boxShadow: '4px 6px 16px rgba(0,0,0,0.6)',
-    padding: '8px 8px 16px 8px',
-    width: '200px',
-    cursor: 'grab',
+    background: '#E8E0D0',
+    padding: '8px 8px 20px',
+    width: 200,
     position: 'relative',
     userSelect: 'none',
-    transition: 'box-shadow 0.2s',
+    cursor: 'grab',
+    willChange: 'transform',
+    transition: 'filter 0.2s',
   },
   tape: {
     position: 'absolute',
-    top: '-10px', left: '50%',
-    width: '60px', height: '18px',
+    top: -10, left: '50%', transform: 'translateX(-50%) rotate(-2deg)',
+    width: 60, height: 18,
     zIndex: 2,
   },
   img: {
-    width: '100%',
-    height: '160px',
-    objectFit: 'cover',
-    display: 'block',
-    filter: 'contrast(1.05) saturate(0.9)',
+    width: '100%', height: 160,
+    objectFit: 'cover', display: 'block',
+    filter: 'contrast(1.05) saturate(0.88)',
   },
-  caption: {
-    padding: '6px 4px 0',
+  strip: { paddingTop: 7, paddingBottom: 2 },
+  authorRow: { display: 'flex', alignItems: 'center', gap: 5 },
+  dot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0 },
+  authorName: {
+    fontFamily: 'var(--font-body)', fontSize: 9,
+    color: '#111', fontWeight: 700, letterSpacing: 1, flex: 1,
   },
-  authorRow: {
-    display: 'flex', alignItems: 'center', gap: '6px',
+  date: { fontFamily: 'var(--font-body)', fontSize: 8, color: 'rgba(0,0,0,0.45)' },
+  musicBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 12, padding: 0,
   },
-  dot: {
-    width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+  dripsRow: {
+    position: 'absolute', bottom: -14, left: 0, right: 0,
+    height: 20, pointerEvents: 'none',
   },
-  author: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '9px',
-    color: 'var(--black)',
-    fontWeight: 700,
-    letterSpacing: '1px',
-    flex: 1,
+  drip: {
+    position: 'absolute', top: 0,
+    borderRadius: '0 0 4px 4px',
+    animation: 'drip 2.5s ease-in infinite',
+    transformOrigin: 'top',
+    opacity: 0.65,
   },
-  date: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '8px',
-    color: 'rgba(0,0,0,0.4)',
-  },
-  dripsBottom: {
-    position: 'absolute',
-    bottom: '-12px', left: 0, right: 0,
-    height: '20px',
-    overflow: 'visible',
-    pointerEvents: 'none',
-  },
-  cardDrip: {
-    position: 'absolute',
-    top: 0,
-    borderRadius: '0 0 3px 3px',
+  musicWrap: {
+    position: 'absolute', top: '100%', left: 0, right: 0,
+    marginTop: 4, zIndex: 10,
   },
 };

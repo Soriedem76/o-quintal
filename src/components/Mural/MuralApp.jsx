@@ -1,115 +1,148 @@
 // src/components/Mural/MuralApp.jsx
 import { useState, useRef, useCallback } from 'react';
 import { useMuralItems } from '../../hooks/useMural';
-import { useUser } from '../../lib/UserContext';
-import { useQuintal } from '../../lib/QuintalContext';
+import { useUser, SHARED_QUINTAL_ID } from '../../lib/UserContext';
 import Canvas from './Canvas';
 import Toolbar from './Toolbar';
 import DrawingLayer from '../Drawing/DrawingLayer';
 import PhotoUploadModal from '../Photo/PhotoUploadModal';
 import PinModal from '../Pin/PinModal';
 import UserBadge from '../UI/UserBadge';
-import ShareSheet from '../UI/ShareSheet';
 
 export default function MuralApp() {
   const { user, logout } = useUser();
-  const { quintalId, quintalCode, shareUrl, leave } = useQuintal();
+  const quintalId = SHARED_QUINTAL_ID;
   const { items, loading } = useMuralItems(quintalId);
-
   const [mode, setMode] = useState('pan');
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [pinPosition, setPinPosition] = useState({ x: 0, y: 0 });
+  const [showPhoto, setShowPhoto] = useState(false);
+  const [pinPos, setPinPos] = useState(null);
   const canvasOffset = useRef({ x: 0, y: 0 });
 
-  const handleMuralClick = useCallback((e) => {
-    if (mode === 'pin') {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setPinPosition({
-        x: e.clientX - rect.left - canvasOffset.current.x,
-        y: e.clientY - rect.top - canvasOffset.current.y,
-      });
-      setShowPinModal(true);
-      setMode('pan');
-    }
+  const handleAreaClick = useCallback((e) => {
+    if (mode !== 'pin') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPinPos({
+      x: (e.clientX - rect.left) - canvasOffset.current.x,
+      y: (e.clientY - rect.top)  - canvasOffset.current.y,
+    });
+    setMode('pan');
   }, [mode]);
 
+  const hints = {
+    draw: '🎨  MODO GRAFFITI — desenhe com o dedo ou mouse',
+    pin:  '📍  TOQUE no mural onde quer fixar o pin',
+  };
+
   return (
-    <div style={styles.root}>
-      <div style={styles.wallBg} />
-      <div style={styles.topBar}>
-        <button style={styles.codeChip} onClick={() => setShowShare(true)}>
-          <span style={styles.codeDot} />
-          <span style={styles.codeText}>{quintalCode}</span>
-          <span style={styles.shareIcon}>↗</span>
-        </button>
-        <div style={styles.logo}>O QUINTAL</div>
-        <UserBadge user={user} onLogout={() => { logout(); leave(); }} />
-      </div>
+    <div style={S.root}>
+      {/* ── Top bar ── */}
+      <header style={S.topBar}>
+        <div style={S.logoRow}>
+          {/* O — SVG com corte interno, estilo Laretta */}
+          <svg viewBox="0 0 44 54" style={S.logoO}>
+            <rect x="2"  y="2"  width="40" height="50" rx="7"  fill="var(--red)"/>
+            <rect x="10" y="10" width="24" height="32" rx="5"  fill="var(--bg)"/>
+          </svg>
+          <div style={S.logoTexts}>
+            <div style={S.logoSub}>MURAL DA GALERA</div>
+            <div style={S.logoMain}>QUINTAL</div>
+          </div>
+        </div>
+        <UserBadge user={user} onLogout={logout} />
+      </header>
+
+      {/* ── Mural ── */}
       <div
-        style={{ ...styles.muralArea, cursor: mode === 'pin' ? 'crosshair' : mode === 'draw' ? 'none' : 'grab' }}
-        onClick={handleMuralClick}
+        style={{ ...S.mural, cursor: mode === 'pin' ? 'crosshair' : 'default' }}
+        onClick={handleAreaClick}
       >
-        <Canvas items={items} loading={loading} user={user} canvasOffset={canvasOffset} mode={mode} />
+        <Canvas
+          items={items}
+          loading={loading}
+          user={user}
+          canvasOffset={canvasOffset}
+          mode={mode}
+        />
         {mode === 'draw' && (
-          <DrawingLayer user={user} quintalId={quintalId} canvasOffset={canvasOffset} onFinish={() => setMode('pan')} />
+          <DrawingLayer
+            user={user}
+            quintalId={quintalId}
+            canvasOffset={canvasOffset}
+            onFinish={() => setMode('pan')}
+          />
         )}
       </div>
-      <Toolbar mode={mode} user={user} onMode={setMode} onPhotoClick={() => setShowPhotoModal(true)} />
-      {mode !== 'pan' && (
-        <div style={styles.modeHint}>
-          {mode === 'draw' && '✏️  GRAFITANDO — desenhe com o dedo'}
-          {mode === 'pin' && '📍 TOQUE no mural para fixar um pin'}
-        </div>
+
+      {/* ── Mode hint ── */}
+      {hints[mode] && <div style={S.hint} key={mode}>{hints[mode]}</div>}
+
+      <Toolbar mode={mode} user={user} onMode={setMode} onPhotoClick={() => setShowPhoto(true)} />
+
+      {showPhoto && (
+        <PhotoUploadModal
+          user={user}
+          quintalId={quintalId}
+          canvasOffset={canvasOffset}
+          onClose={() => setShowPhoto(false)}
+        />
       )}
-      {showPhotoModal && <PhotoUploadModal user={user} quintalId={quintalId} onClose={() => setShowPhotoModal(false)} canvasOffset={canvasOffset} />}
-      {showPinModal && <PinModal user={user} quintalId={quintalId} position={pinPosition} onClose={() => setShowPinModal(false)} />}
-      {showShare && <ShareSheet code={quintalCode} url={shareUrl} onClose={() => setShowShare(false)} />}
+      {pinPos && (
+        <PinModal
+          user={user}
+          quintalId={quintalId}
+          position={pinPos}
+          onClose={() => setPinPos(null)}
+        />
+      )}
     </div>
   );
 }
 
-const styles = {
+const S = {
   root: {
     position: 'fixed', inset: 0,
     display: 'flex', flexDirection: 'column',
-    overflow: 'hidden', background: 'var(--black)',
+    overflow: 'hidden',
+    background: 'var(--bg)',
     paddingTop: 'env(safe-area-inset-top)',
-    paddingBottom: 'env(safe-area-inset-bottom)',
-  },
-  wallBg: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    backgroundImage: `radial-gradient(ellipse at 20% 50%, rgba(214,40,40,0.04) 0%, transparent 50%), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 3px)`,
   },
   topBar: {
-    position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '10px 16px', borderBottom: '2px solid rgba(214,40,40,0.35)',
-    background: 'rgba(13,13,13,0.92)', backdropFilter: 'blur(8px)',
-    zIndex: 100, flexShrink: 0, minHeight: '52px',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '8px 18px',
+    /* separador linha branca bem fina, igual ao estilo da tipografia */
+    borderBottom: '1px solid rgba(240,237,232,0.10)',
+    background: 'rgba(20,20,20,0.97)',
+    backdropFilter: 'blur(6px)',
+    zIndex: 100, flexShrink: 0, minHeight: 52,
   },
-  codeChip: {
-    display: 'flex', alignItems: 'center', gap: '6px',
-    background: 'rgba(214,40,40,0.15)', border: '1px solid rgba(214,40,40,0.4)',
-    padding: '5px 10px', cursor: 'pointer', color: 'var(--white)',
+  logoRow: { display: 'flex', alignItems: 'center', gap: 10 },
+  logoO: {
+    width: 30, height: 36, flexShrink: 0,
+    filter: 'drop-shadow(2px 2px 0 var(--red-dark))',
   },
-  codeDot: {
-    width: '6px', height: '6px', borderRadius: '50%',
-    background: 'var(--red)', animation: 'pulse-red 2s ease infinite', flexShrink: 0,
+  logoTexts: { display: 'flex', flexDirection: 'column', gap: 1 },
+  logoSub: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 7, letterSpacing: 3,
+    color: 'var(--red)',
+    lineHeight: 1,
   },
-  codeText: { fontFamily: 'var(--font-display)', fontSize: '13px', letterSpacing: '2px', color: 'var(--red)' },
-  shareIcon: { fontSize: '14px', color: 'var(--paper)' },
-  logo: {
-    fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--white)',
-    letterSpacing: '3px', textShadow: '2px 2px 0 var(--red)',
-    position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+  logoMain: {
+    fontFamily: 'var(--font-display)',
+    fontSize: 22, letterSpacing: 3,
+    color: 'var(--white-ink)',
+    textShadow: '2px 2px 0 var(--red)',
+    lineHeight: 1,
   },
-  muralArea: { flex: 1, position: 'relative', overflow: 'hidden', touchAction: 'none' },
-  modeHint: {
-    position: 'absolute', bottom: '90px', left: '50%', transform: 'translateX(-50%)',
-    background: 'var(--red)', color: 'var(--white)', fontFamily: 'var(--font-body)',
-    fontSize: '11px', padding: '8px 20px', letterSpacing: '1px',
-    boxShadow: 'var(--shadow-brutal)', zIndex: 200, pointerEvents: 'none',
-    animation: 'stamp-in 0.3s ease', whiteSpace: 'nowrap',
+  mural: { flex: 1, position: 'relative', overflow: 'hidden', touchAction: 'none' },
+  hint: {
+    position: 'absolute', bottom: 86, left: '50%', transform: 'translateX(-50%)',
+    background: 'var(--red)', color: 'var(--white-ink)',
+    fontFamily: 'var(--font-body)', fontSize: 10,
+    padding: '8px 22px', letterSpacing: 1,
+    boxShadow: '4px 4px 0 var(--red-dark)',
+    zIndex: 200, pointerEvents: 'none',
+    whiteSpace: 'nowrap',
+    animation: 'stamp-in 0.3s ease',
   },
 };

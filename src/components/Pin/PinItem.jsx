@@ -1,100 +1,65 @@
-// src/components/Pin/PinItem.jsx
 import { useState } from 'react';
 import MusicPlayer from '../Music/MusicPlayer';
-
 export default function PinItem({ item }) {
   const [open, setOpen] = useState(false);
-  const rotation = ((item.id?.charCodeAt(2) || 0) % 12) - 6;
-
+  const rot = ((item.id?.charCodeAt(2) || 0) % 14) - 7;
   return (
     <div style={{ position: 'relative' }}>
-      {/* Pin needle */}
       <div style={{
-        ...styles.needle,
+        ...S.needle,
         background: item.authorColor,
-        boxShadow: `0 0 8px ${item.authorColor}`,
+        boxShadow: `0 0 8px ${item.authorColor}88`,
       }} />
-
-      {/* The sticker/tag */}
       <div
         style={{
-          ...styles.sticker,
+          ...S.sticker,
           borderColor: item.authorColor,
-          transform: `rotate(${rotation}deg)`,
-          boxShadow: `3px 3px 0 ${item.authorColor}66`,
+          transform: `rotate(${rot}deg)`,
+          boxShadow: `3px 3px 0 ${item.authorColor}55, 0 4px 16px rgba(0,0,0,0.6)`,
         }}
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen(o => !o)}
       >
-        {/* Author badge */}
-        <div style={{ ...styles.authorBadge, background: item.authorColor }}>
+        <div style={{ ...S.tag, background: item.authorColor }}>
           {item.author}
         </div>
-
-        {/* Text */}
-        <p style={styles.text}>{item.text}</p>
-
-        {/* Music toggle */}
-        {item.music && (
-          <div style={styles.musicBadge} onClick={e => e.stopPropagation()}>
-            🎵
-          </div>
-        )}
+        <p style={S.text}>{item.text}</p>
+        {item.music && <div style={S.musicIcon}>🎵</div>}
       </div>
-
-      {/* Music player expanded */}
       {open && item.music && (
-        <div style={styles.musicExpanded}>
+        <div style={S.player}>
           <MusicPlayer url={item.music} color={item.authorColor} />
         </div>
       )}
     </div>
   );
 }
-
-const styles = {
+const S = {
   needle: {
-    position: 'absolute',
-    top: '-6px', left: '12px',
-    width: '8px', height: '8px',
+    position: 'absolute', top: -6, left: 14,
+    width: 8, height: 8,
     borderRadius: '50% 50% 50% 0',
-    transform: 'rotate(-45deg)',
-    zIndex: 2,
+    transform: 'rotate(-45deg)', zIndex: 2,
   },
   sticker: {
-    background: '#F5F0E8',
+    background: '#F0EAE0',
     border: '2px solid',
     padding: '10px 12px',
-    maxWidth: '180px',
-    cursor: 'pointer',
-    userSelect: 'none',
-    transition: 'transform 0.15s',
+    maxWidth: 180,
+    cursor: 'pointer', userSelect: 'none',
     position: 'relative',
   },
-  authorBadge: {
+  tag: {
     fontFamily: 'var(--font-display)',
-    fontSize: '9px',
-    color: 'var(--black)',
-    padding: '2px 6px',
+    fontSize: 9, color: 'var(--ink-black)',
+    padding: '2px 7px',
     display: 'inline-block',
-    marginBottom: '6px',
-    letterSpacing: '1px',
+    marginBottom: 6, letterSpacing: 1,
   },
   text: {
     fontFamily: 'var(--font-body)',
-    fontSize: '11px',
-    color: 'var(--black)',
-    lineHeight: 1.4,
-    margin: 0,
-    wordBreak: 'break-word',
+    fontSize: 11, color: '#1A1A1A',
+    lineHeight: 1.45, margin: 0, wordBreak: 'break-word',
   },
-  musicBadge: {
-    position: 'absolute',
-    top: '4px', right: '4px',
-    fontSize: '12px',
-    cursor: 'pointer',
-  },
-  musicExpanded: {
-    marginTop: '4px',
-    animation: 'spray-fade 0.2s ease',
-  },
+  musicIcon: { position: 'absolute', top: 4, right: 6, fontSize: 11 },
+  player: { marginTop: 4 },
 };

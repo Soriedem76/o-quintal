@@ -4,8 +4,9 @@ import { auth } from './firebase';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const UserContext = createContext(null);
-
 const USER_KEY = 'quintal_user';
+// Single shared quintal ID for everyone
+export const SHARED_QUINTAL_ID = 'quintal_shared_main';
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -16,7 +17,6 @@ export function UserProvider({ children }) {
     if (stored) {
       try { setUser(JSON.parse(stored)); } catch {}
     }
-
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         try { await signInAnonymously(auth); } catch (e) { console.warn('Auth error', e); }

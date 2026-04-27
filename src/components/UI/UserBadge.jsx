@@ -1,27 +1,22 @@
-// src/components/UI/UserBadge.jsx
 import { useState } from 'react';
-
 export default function UserBadge({ user, onLogout }) {
   const [open, setOpen] = useState(false);
+  if (!user) return null;
   return (
-    <div style={styles.wrap}>
+    <div style={{ position: 'relative' }}>
       <button
-        style={{ ...styles.badge, background: user.color, boxShadow: `0 0 10px ${user.color}44` }}
-        onClick={() => setOpen(!open)}
+        style={{
+          ...S.badge,
+          background: user.color,
+          boxShadow: `0 0 14px ${user.color}55, 3px 3px 0 var(--red-dark)`,
+        }}
+        onClick={() => setOpen(o => !o)}
       >
-        <span style={styles.name}>{user.name}</span>
-        <span style={styles.arrow}>{open ? '▲' : '▼'}</span>
+        {user.name}
       </button>
       {open && (
-        <div style={styles.dropdown}>
-          <div style={styles.info}>
-            <div style={{ ...styles.dot, background: user.color }} />
-            <div>
-              <div style={styles.infoName}>{user.name}</div>
-              <div style={styles.infoSub}>no quintal</div>
-            </div>
-          </div>
-          <button style={styles.logoutBtn} onClick={() => { setOpen(false); onLogout(); }}>
+        <div style={S.menu}>
+          <button style={S.item} onClick={() => { setOpen(false); onLogout(); }}>
             SAIR DO QUINTAL
           </button>
         </div>
@@ -29,32 +24,26 @@ export default function UserBadge({ user, onLogout }) {
     </div>
   );
 }
-
-const styles = {
-  wrap: { position: 'relative' },
+const S = {
   badge: {
-    border: 'none', padding: '5px 12px',
-    fontFamily: 'var(--font-display)', fontSize: '12px',
-    color: 'var(--black)', letterSpacing: '1px', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: '6px',
+    fontFamily: 'var(--font-display)',
+    fontSize: 13, padding: '5px 13px',
+    color: 'var(--ink-black)', letterSpacing: 1,
+    border: 'none', cursor: 'pointer',
+    transition: 'transform 0.1s',
   },
-  name: { letterSpacing: '1px', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  arrow: { fontSize: '9px' },
-  dropdown: {
-    position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-    background: 'var(--black-soft)', border: '2px solid var(--red)',
-    padding: '12px', minWidth: '170px',
-    boxShadow: '4px 4px 0 var(--red-dark)', zIndex: 999,
-    animation: 'spray-fade 0.15s ease',
+  menu: {
+    position: 'absolute', right: 0, top: '110%',
+    background: 'var(--bg-card)',
+    border: '1px solid rgba(240,237,232,0.12)',
+    zIndex: 200, minWidth: 160,
+    boxShadow: '4px 4px 0 var(--ink-black)',
   },
-  info: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' },
-  dot: { width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0 },
-  infoName: { fontFamily: 'var(--font-display)', fontSize: '15px', color: 'var(--white)' },
-  infoSub: { fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--paper)', letterSpacing: '1px' },
-  logoutBtn: {
+  item: {
     width: '100%', background: 'transparent',
-    border: '1px solid rgba(214,40,40,0.4)',
-    color: 'var(--red)', fontFamily: 'var(--font-body)',
-    fontSize: '10px', padding: '8px', cursor: 'pointer', letterSpacing: '2px',
+    border: 'none', color: 'var(--white-ink)',
+    fontFamily: 'var(--font-body)',
+    fontSize: 10, padding: '12px 14px',
+    cursor: 'pointer', letterSpacing: 1, textAlign: 'left',
   },
 };
