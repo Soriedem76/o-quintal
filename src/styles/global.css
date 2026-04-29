@@ -5,7 +5,7 @@
    Tipografia: Black Ops One (display) + Space Mono (body)
 ═══════════════════════════════════════════════════ */
 @import './animations.css';
-@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rubik+Bubbles&family=Bangers&family=Permanent+Marker&display=swap');
 
 :root {
   /* ── CORES — extraídas da referência Laretta ── */
@@ -29,6 +29,9 @@
   --font-display: 'Black Ops One', cursive;
   --font-heading: 'Teko', sans-serif;
   --font-body:    'Space Mono', monospace;
+  --font-graffiti: 'Rubik Bubbles', cursive;
+  --font-tag:      'Bangers', cursive;
+  --font-marker:   'Permanent Marker', cursive;
 
   /* ── SOMBRAS ── */
   --shadow-brutal: 4px 4px 0 var(--ink-black);

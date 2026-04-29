@@ -5,11 +5,12 @@ import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const UserContext = createContext(null);
 const USER_KEY = 'quintal_user';
-// Single shared quintal ID for everyone
+
+// Exportada separadamente para não misturar com o componente (Fast Refresh)
 export const SHARED_QUINTAL_ID = 'quintal_shared_main';
 
 export function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser]           = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
@@ -26,10 +27,20 @@ export function UserProvider({ children }) {
     return unsub;
   }, []);
 
-  const login = (name, color) => {
-    const u = { name, color, id: auth.currentUser?.uid || crypto.randomUUID() };
+  const login = (name, color, extra = {}) => {
+    const u = {
+      name,
+      color,
+      id: auth.currentUser?.uid || crypto.randomUUID(),
+      photoUrl: extra.photoUrl || null,
+      tagData:  extra.tagData  || null,
+    };
     setUser(u);
-    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(u));
+    } catch {
+      localStorage.setItem(USER_KEY, JSON.stringify({ name, color, id: u.id }));
+    }
   };
 
   const logout = () => {
@@ -44,4 +55,7 @@ export function UserProvider({ children }) {
   );
 }
 
-export const useUser = () => useContext(UserContext);
+// eslint-disable-next-line react-refresh/only-export-components
+export function useUser() {
+  return useContext(UserContext);
+}
